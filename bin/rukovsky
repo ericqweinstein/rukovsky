@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby -w
+
+# Rukovksy: Ruby + Markov + Zukovsky
+#
+# A twenty-first century troubadour.
+#
+# (See LICENSE for copying)
+
+require 'optparse'
+require_relative '../lib/rukovsky'
+
+options = {}
+
+opt_parser = OptionParser.new do |opts|
+
+  opts.banner = "Usage: rukovsky COMMAND [OPTIONS]"
+  opts.separator ""
+  opts.separator "Commands:"
+  opts.separator "  remix [FILE]: Builds a dictionary based on the contents of corpus.txt and generates a poem of 3 to 33 lines based on that dictionary."
+  opts.separator ""
+
+  opts.on("-h", "--help", "Display this screen") do
+    puts opt_parser
+    exit
+  end
+end
+
+begin opt_parser.parse!
+rescue OptionParser::InvalidOption => e
+  abort("Alack! Error: #{e}. Run rukovsky -h for help.")
+end
+
+command = ARGV[0]
+
+if command == "remix"
+  file = ARGV[1]
+  file = 'corpus.txt' if file.nil?
+  rukovsky = Rukovsky::Dictionary.new(file)
+  puts "Sit tight: Rukovsky's reading."
+  begin
+    rukovsky.read_in(file)
+    puts "Done! Preparing poem..."
+  rescue MarkovDictionary::DictionaryError => e
+    abort("Alack! Error: #{e} Could not read #{file}.")
+  end
+
+  begin
+    puts rukovsky.generate_poem
+  rescue => e
+    puts "Alack! Error: #{e}."
+  end
+else
+  puts "That's not a command Rukovsky knows. Run ruby rukovsky -h for help."
+end
+
